@@ -1,0 +1,5 @@
+name = AdInsight Field
+description = Add AdInsight phone numbers as fields.
+core = 7.x
+
+dependencies[] = field

@@ -5,11 +5,26 @@
 function adinsight_menu() {
   $items = array();
   
-  $items['admin/services/adinsight'] = array(
+  $items['admin/config/services/adinsight'] = array(
       'title' => 'AdInsight',
       'description' => 'Configure the AdInsight field formatter.',
-      'file' => 'adinsight.admin.inc'
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('adinsight_admin'),
+      'access callback' => TRUE,
+      'file' => 'adinsight.admin.inc',
+      'type' => MENU_NORMAL_ITEM,
   );
-  
+     
   return $items;
 }
+
+/**
+ * Implements hook_enable();
+ */
+function adinsight_enable() {
+  $link = l(t('here'), 'admin/config/services/adinsight');
+  $text = t('Don\'t forget to go and set your AdInsight ID !link.', array('!link' => $link));
+  
+  drupal_set_message($text, 'status');
+}
+
