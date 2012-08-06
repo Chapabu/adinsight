@@ -1,0 +1,15 @@
+<?php
+/*
+ * Implements hook_menu()
+ */
+function adinsight_menu() {
+  $items = array();
+  
+  $items['admin/services/adinsight'] = array(
+      'title' => 'AdInsight',
+      'description' => 'Configure the AdInsight field formatter.',
+      'file' => 'adinsight.admin.inc'
+  );
+  
+  return $items;
+}
