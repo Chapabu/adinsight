@@ -1,0 +1,8 @@
+<?php
+
+function adinsight_uninstall() {
+  //Just in case, let's delete the variables set if they still exist.
+  if (!is_null(variable_get('adinsight_id', NULL))) {
+    variable_del('adinsight_id');
+  }
+}
