@@ -48,59 +48,96 @@ function adinsight_init() {
   }
 }
 
+/*
+ * Implements hook_field_info()
+ */
+function adinsight_field_info() {
+  return array(
+    'adinsight_phone_number' => array(
+      'label' => t('AdInsight'),
+      'description' => t('Display AdInsight tracked phone number'),
+      'default_widget' => 'adinsight_phone_widget',
+      'default_formatter' => 'adinsight_phone_formatter'
+    )
+  );
+}
+
+/*
+ * Implements hook_field_validate().
+ */
+function adinsight_field_validate($element, &$form_state) {
+  //@TODO: Add some validation once the widget structure is complete.
+  return TRUE;
+}
+
+/*
+ * Implements hook_field_is_empty().
+ */
+function adinsight_field_is_empty($item, $field){ 
+  return empty($item['adinsight_id']);
+}
+
+/*
+ * Implements hook_widget_info().
+ */
+function adinsight_field_widget_info() {
+  return array(
+    'adinsight_phone_widget' => array(
+      'label' => t('AdInsight provided phone number.'),
+      'field types' => array('adinsight_phone_number')
+      ),
+  );
+}
+
+/*
+ * Implements hook_field_widget_form().
+ */
+function adinsight_field_widget_form(&$form, &$form_state, $field, $instance, $lancode, $items, $delta, $element) {
+  $adinsight_id = isset($items[$delta]['adinsight_id']) ? $items[$delta]['adinsight_id'] : '';
+  $adinsight_fallback = isset($items[$delta]['adinsight_fallback']) ? $items[$delta]['adinsight_fallback'] : '';
+  
+  $widget = $element;
+  $widget['#delta'] = $delta;
+  
+  switch ($instance['widget']['type']) {
+    case 'adinsight_phone_widget':
+      $widget += array(
+        '#type' => 'fieldset',
+        '#element_validate' => array('adinsight_phone_field_validate'),
+        '#delta' => $delta
+      );
+      
+      $widget['adinsight_id'] = array(
+        '#type' => 'textfield',
+        '#title' => t('AdInsight phone number ID'),
+        '#default_value' => $adinsight_id,
+      );
+      
+      $widget['adinsight_fallback'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Fallback phone number'),
+        '#default_value' => $adinsight_fallback,
+      );
+      
+      break;
+  }
+  
+  return $widget;
+}
+
+function adinsight_phone_field_validate($element, &$form_state) {
+  die(print_r($element));
+}
 /**
  * Implements hook_field_formatter_info()
  */
 function adinsight_field_formatter_info() {
   return array(
     'adinsight_phone_formatter' => array(
-      'label' => t('AdInsight Number'),
-      'field types' => array('text'),
-      'settings' => array(
-        'fallback_phone' => NULL,
-      ),
+      'label' => t('AdInsight number'),
+      'field types' => array('adinsight_phone_number'),
     ),
   );
-}
-
-/*
- * Implements hook_field_formatter_settings_form()
- */
-
-function adinsight_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
-  //This gets the view_mode where our settings are stored
-  $display = $instance['display'][$view_mode];
-  //Get the current settings
-  $settings = $display['settings'];
-
-  $element = array();
-
-  $element['fallback_phone'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Fallback phone number'),
-    '#default_value' => $settings['default_phone'],
-    '#description' => t('Enter the fallback phone number for this field in case JavaScript is disabled or AdInsight cannot be reached.'),
-  );
-
-  return $element;
-}
-
-/**
- * Implements hook_field_formatter_settings_summary().
- */
-function adinsight_field_formatter_settings_summary($field, $instance, $view_mode) {
-  $display = $instance['display'][$view_mode];
-  $settings = $display['settings'];
-
-  if (empty($settings['fallback_phone'])) {
-    $summary = t('Use AdInsight provided phone number.');
-  }
-  else {
-    $summary = t('Use AdInsight provided phone number (or @fallback_phone).', array(
-      '@fallback_phone' => $settings['fallback_phone'],
-            ));
-  }
-  return $summary;
 }
 
 /*
@@ -108,14 +145,17 @@ function adinsight_field_formatter_settings_summary($field, $instance, $view_mod
  */
 
 function adinsight_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
-  $elements = array();
+  $element = array();
 
-  foreach ($items as $delta => $item) {
-    $elements[$delta] = array(
-      '#markup' => theme('adinsight_phone_formatter', array('element' => $item, 'field' => $instance)),
-    );
+  switch ($display['type']) {
+    case 'adinsight_phone_formatter':
+      foreach ($items as $delta => $item) {
+        $element[$delta]['#markup'] = theme('adinsight_phone_formatter', array('element' => $item, 'field' => $instance));
+      }
+      break;
   }
-  return $elements;
+  
+  return $element;
 }
 
 /*
@@ -125,23 +165,19 @@ function adinsight_field_formatter_view($entity_type, $entity, $field, $instance
 function adinsight_theme() {
   return array(
     'adinsight_phone_formatter' => array(
-      'variables' => array('element' => NULL, 'field' => NULL,)
+      'variables' => array('element' => NULL)
     )
   );
 }
 
 function theme_adinsight_phone_formatter($variables) {
-  $field_settings = $variables['field']['display']['default']['settings'];
-  $element = $variables['element'];
-
-  $fallback_number = (!empty($field_settings['fallback_phone'])) ? $field_settings['fallback_phone'] : NULL;
-
-  $field_value = (!empty($element['value'])) ? $element['value'] : NULL;
-
-  if (!is_null($field_value)) {
-    return '<span class="adinsight-number adinsightNumber' . $field_value . '">' . $fallback_number . '</span>';
+  $values = $variables['element'];
+  
+  if (!is_null($values['adinsight_id'])) {
+    return '<span class="adinsight-number adinsightNumber' . $values['adinsight_id'] . '">' . $values['adinsight_fallback'] . '</span>';
   }
   else {
-    return '<span class="adinsight-number">' . $fallback_number . '</span>';
+    return '<span class="adinsight-number">' . $values['adinsight_fallback'] . '</span>';
   }
+  
 }

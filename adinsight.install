@@ -1,5 +1,31 @@
 <?php
 
+/*
+ * Implements hook_field_schema
+ */
+function adinsight_field_schema($field) {
+  $columns = array(
+    'adinsight_id' => array(
+      'type' => 'int',
+      'not null' => TRUE
+    ),
+    'adinsight_fallback' => array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+    ),
+  );
+  
+  $indexes = array(
+    'adinsight_id' => array('adinsight_id'),
+  );
+  
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+  );
+}
+
 function adinsight_uninstall() {
   //Just in case, let's delete the variables set if they still exist.
   if (!is_null(variable_get('adinsight_id', NULL))) {
