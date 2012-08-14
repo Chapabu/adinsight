@@ -32,8 +32,7 @@ function adinsight_init() {
   //admin page, and then return nothing if they are
 
   if (is_null($adinsightid) && $path_is_admin == TRUE) {
-    $link = l('here', 'admin/config/services/adinsight');
-    drupal_set_message(t('You haven\'t set your AdInsight ID yet. You can do it !here.', array('!here' => $link)));
+    drupal_set_message(t('You haven\'t set your AdInsight ID yet. You can do it !here.', array('!here' => l(t('here'), 'admin/config/services/adinsight'))));
   }
   //Only add the scripts if the AdInsight ID is set
   if (!is_null($adinsightid) && $path_is_admin == FALSE) {
@@ -65,7 +64,7 @@ function adinsight_field_info() {
 /*
  * Implements hook_field_is_empty().
  */
-function adinsight_field_is_empty($item, $field){ 
+function adinsight_field_is_empty($item, $field) { 
   return empty($item['adinsight_id']);
 }
 
@@ -95,7 +94,7 @@ function adinsight_field_widget_form(&$form, &$form_state, $field, $instance, $l
     case 'adinsight_phone_widget':
       $widget += array(
         '#type' => 'fieldset',
-        '#element_validate' => array('adinsight_phone_field_validate'),
+        '#element_' => array('adinsight_phone_field_validate'),
         '#delta' => $delta
       );
       

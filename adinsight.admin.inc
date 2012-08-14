@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Contains the administration pages.
+ */
 
 function adinsight_admin() {
   $form = array();
