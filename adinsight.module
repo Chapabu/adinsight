@@ -63,14 +63,6 @@ function adinsight_field_info() {
 }
 
 /*
- * Implements hook_field_validate().
- */
-function adinsight_field_validate($element, &$form_state) {
-  //@TODO: Add some validation once the widget structure is complete.
-  return TRUE;
-}
-
-/*
  * Implements hook_field_is_empty().
  */
 function adinsight_field_is_empty($item, $field){ 
@@ -125,8 +117,21 @@ function adinsight_field_widget_form(&$form, &$form_state, $field, $instance, $l
   return $widget;
 }
 
+/**
+ * Widget validation
+ * 
+ * @see adinsight_field_widget_form()
+ */
 function adinsight_phone_field_validate($element, &$form_state) {
-  die(print_r($element));
+  $delta = $element['#delta'];
+  $field = $form_state['field'][$element['#field_name']][$element['#language']]['field'];
+  $field_name = $field['field_name'];
+  $adinsight_id = $form_state['values'][$field_name][$element['#language']][$delta]['adinsight_id'];
+  $adinsight_fallback = $form_state['values'][$field_name][$element['#language']][$delta]['adinsight_fallback'];
+  
+  if (!empty($adinsight_id) && empty($adinsight_fallback)) {
+    form_error($element, t('There needs to be a fallback phone number for every AdInsight number.'));
+  }
 }
 /**
  * Implements hook_field_formatter_info()
@@ -170,6 +175,9 @@ function adinsight_theme() {
   );
 }
 
+/*
+ * Theme the field containing the phone number.
+ */
 function theme_adinsight_phone_formatter($variables) {
   $values = $variables['element'];
   
