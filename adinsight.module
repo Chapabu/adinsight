@@ -121,6 +121,7 @@ function adinsight_field_formatter_view($entity_type, $entity, $field, $instance
 /*
  * Implements hook_theme().
  */
+
 function adinsight_theme() {
   return array(
     'adinsight_phone_formatter' => array(
@@ -133,16 +134,10 @@ function theme_adinsight_phone_formatter($variables) {
   $field_settings = $variables['field']['display']['default']['settings'];
   $element = $variables['element'];
 
-  dpm($field_settings);
-  dpm($element);
-
   $fallback_number = (!empty($field_settings['fallback_phone'])) ? $field_settings['fallback_phone'] : NULL;
 
   $field_value = (!empty($element['value'])) ? $element['value'] : NULL;
 
-  dpm($fallback_number);
-  dpm($field_value);
-  
   if (!is_null($field_value)) {
     return '<span class="adinsight-number adinsightNumber' . $field_value . '">' . $fallback_number . '</span>';
   }
