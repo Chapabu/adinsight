@@ -8,13 +8,13 @@ function adinsight_menu() {
   $items = array();
 
   $items['admin/config/services/adinsight'] = array(
-      'title' => 'AdInsight',
-      'description' => 'Configure the AdInsight field formatter.',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('adinsight_admin'),
-      'access callback' => TRUE,
-      'file' => 'adinsight.admin.inc',
-      'type' => MENU_NORMAL_ITEM,
+    'title' => 'AdInsight',
+    'description' => 'Configure the AdInsight field formatter.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('adinsight_admin'),
+    'access callback' => TRUE,
+    'file' => 'adinsight.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
   );
 
   return $items;
@@ -24,13 +24,13 @@ function adinsight_menu() {
  * Implements hook_init()
  */
 function adinsight_init() {
-  
+
   $path_is_admin = path_is_admin(current_path());
   $adinsightid = variable_get('adinsight_id', NULL);
-  
+
   //We don't need the script on the admin pages - so check if the user is on an 
   //admin page, and then return nothing if they are
- 
+
   if (is_null($adinsightid) && $path_is_admin == TRUE) {
     $link = l('here', 'admin/config/services/adinsight');
     drupal_set_message(t('You haven\'t set your AdInsight ID yet. You can do it !here.', array('!here' => $link)));
@@ -40,12 +40,12 @@ function adinsight_init() {
     $settings = array();
 
     $settings['adinsight'] = array(
-        'id' => $adinsightid,
+      'id' => $adinsightid,
     );
-   
+
     drupal_add_js($settings, array('type' => 'setting'));
     drupal_add_js(drupal_get_path('module', 'adinsight') . '/adinsight.js', array('type' => 'file', 'scope' => 'header', 'weight' => 5));
-  } 
+  }
 }
 
 /**
@@ -53,13 +53,13 @@ function adinsight_init() {
  */
 function adinsight_field_formatter_info() {
   return array(
-      'adinsight_phone_formatter' => array (
+    'adinsight_phone_formatter' => array(
       'label' => t('AdInsight Number'),
-      'field types' => 'text',
+      'field types' => array('text'),
       'settings' => array(
-          'fallback_phone' => NULL,
+        'fallback_phone' => NULL,
       ),
-      ),
+    ),
   );
 }
 
@@ -72,13 +72,81 @@ function adinsight_field_formatter_settings_form($field, $instance, $view_mode, 
   $display = $instance['display'][$view_mode];
   //Get the current settings
   $settings = $display['settings'];
-  //Initialize the element variable
+
   $element = array();
-  
+
   $element['fallback_phone'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Fallback phone number'),
-      '#default_value' => $settings['default_phone'],
-      '#description' => t('Enter the fallback phone number for this field in case JavaScript is disabled or AdInsight cannot be reached.'),
+    '#type' => 'textfield',
+    '#title' => t('Fallback phone number'),
+    '#default_value' => $settings['default_phone'],
+    '#description' => t('Enter the fallback phone number for this field in case JavaScript is disabled or AdInsight cannot be reached.'),
   );
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function adinsight_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  if (empty($settings['fallback_phone'])) {
+    $summary = t('Use AdInsight provided phone number.');
+  }
+  else {
+    $summary = t('Use AdInsight provided phone number (or @fallback_phone).', array(
+      '@fallback_phone' => $settings['fallback_phone'],
+            ));
+  }
+  return $summary;
+}
+
+/*
+ * Implements hook_field_formatter_view().
+ */
+
+function adinsight_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $elements = array();
+
+  foreach ($items as $delta => $item) {
+    $elements[$delta] = array(
+      '#markup' => theme('adinsight_phone_formatter', array('element' => $item, 'field' => $instance)),
+    );
+  }
+  return $elements;
+}
+
+/*
+ * Implements hook_theme().
+ */
+function adinsight_theme() {
+  return array(
+    'adinsight_phone_formatter' => array(
+      'variables' => array('element' => NULL, 'field' => NULL,)
+    )
+  );
+}
+
+function theme_adinsight_phone_formatter($variables) {
+  $field_settings = $variables['field']['display']['default']['settings'];
+  $element = $variables['element'];
+
+  dpm($field_settings);
+  dpm($element);
+
+  $fallback_number = (!empty($field_settings['fallback_phone'])) ? $field_settings['fallback_phone'] : NULL;
+
+  $field_value = (!empty($element['value'])) ? $element['value'] : NULL;
+
+  dpm($fallback_number);
+  dpm($field_value);
+  
+  if (!is_null($field_value)) {
+    return '<span class="adinsight-number adinsightNumber' . $field_value . '">' . $fallback_number . '</span>';
+  }
+  else {
+    return '<span class="adinsight-number">' . $fallback_number . '</span>';
+  }
 }
