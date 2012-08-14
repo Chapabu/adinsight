@@ -21,16 +21,6 @@ function adinsight_menu() {
 }
 
 /**
- * Implements hook_enable();
- */
-function adinsight_enable() {
-  $link = l(t('here'), 'admin/config/services/adinsight');
-  $text = t('Don\'t forget to go and set your AdInsight ID !link.', array('!link' => $link));
-
-  drupal_set_message($text, 'status');
-}
-
-/**
  * Implements hook_init()
  */
 function adinsight_init() {
